@@ -4,6 +4,10 @@ A small microservices system built for the Trams backend internship assignment. 
 
 ## Architecture
 
+![Architecture diagram](docs/architecture.svg)
+
+Text version, for a quick read without loading the image:
+
 ```
 Client
   │
