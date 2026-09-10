@@ -2,6 +2,7 @@ import asyncio
 import os
 import json
 import nats
+from nats.js.errors import NotFoundError
 
 NATS_URL = os.getenv("NATS_URL", "nats://nats:4222")
 
@@ -28,13 +29,17 @@ async def main():
     nc = await nats.connect(NATS_URL)
     js = nc.jetstream()
 
+    try:
+        await js.stream_info("USER_EVENTS")
+    except NotFoundError:
+        await js.add_stream(name="USER_EVENTS", subjects=["user.*"])
+
     await js.subscribe(
         "user.created", cb=message_handler, durable="notification_service_durable"
     )
     print("Notification Service active and listening...", flush=True)
 
     try:
-
         while True:
             await asyncio.sleep(1)
     finally:
