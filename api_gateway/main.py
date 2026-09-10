@@ -1,10 +1,16 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel, EmailStr
 import httpx
 import os
 
 app = FastAPI(title="API Gateway")
 USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://user_service:8000")
+API_KEY = os.getenv("API_KEY")
+
+
+async def verify_api_key(x_api_key: str = Header(...)):
+    if not API_KEY or x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
 class UserCreate(BaseModel):
@@ -12,7 +18,7 @@ class UserCreate(BaseModel):
     email: EmailStr
 
 
-@app.post("/api/users")
+@app.post("/api/users", dependencies=[Depends(verify_api_key)])
 async def route_create_user(user: UserCreate):
     async with httpx.AsyncClient() as client:
         try:
